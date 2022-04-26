@@ -1,55 +1,46 @@
-""" Initialization of an interactions discord bot """
+""" Main discord bot """
 
-import interactions
 import os
 import discord
+from discord.ext import commands
 import json
-import toyhousescraper
 
 test_id = 870701146099044412
+bot = commands.Bot(command_prefix=".")
+
+
+@bot.event
+async def on_ready():
+    """ Called when bot is activated """
+    await bot.wait_until_ready()
+    await bot.change_presence(activity=discord.Game("Herding Bots"))
+    print("✨ Shepherd Bot is in the Meadow! ✨")
+
+
+@bot.command()
+async def load(ctx, extension):
+    """ Load a cog extension """
+    if ctx.message.author.guild_permissions.administrator:
+        bot.load_extension(f"cogs.{extension}")
+        await ctx.send(f"```{extension} loaded! 🚀 ```")
+
+
+@bot.command()
+async def unload(ctx, extension):
+    """ Unload a cog extension """
+    if ctx.message.author.guild_permissions.administrator:
+        bot.unload_extension(f"cogs.{extension}")
+        await ctx.send(f"```{extension} unloaded! 😱 ```")
+
+# Initial load of all cogs in the cogs folder
+for filename in os.listdir("./cogs"):
+    if filename.endswith(".py"):
+        bot.load_extension(f"cogs.{filename[:-3]}")
+
 
 with open("config.json", "r") as f:
     config = json.load(f)
 
-
-class Bot(interactions.Client):
-    """ Easy instantiation of a Discord Bot with on ready declaration """
-    def __init__(self):
-        super().__init__(config["bot_token"])
-
-    async def on_ready(self):
-        await self.wait_until_ready()
-        print("✨ Shepherd Bot is in the Meadow! ✨")
-
-
-# Initialize a bot
-bot = Bot()
-
-@bot.command(
-    name="add_toys",
-    description="Bind your Toyhou.se account!",
-    scope=test_id,
-    options=[
-        interactions.Option(
-            name="username",
-            description="What is your Toyhou.se username?",
-            type=interactions.OptionType.STRING,
-            required=True,
-        ),
-    ],
-)
-async def add_toys(ctx: interactions.CommandContext, username: str):
-    ths = toyhousescraper.ToyHouseScraper(username)
-    user_img = ths.scrape_user_image()
-    embed = discord.Embed(
-        title="Toyhou.se Username",
-        url=user_img,
-        description="Account Bound!",
-        color=discord.Color.green()
-        )
-    await ctx.send(embed=embed)
-
-
-bot.start()
+bot.run(config["bot_token"])
 
 

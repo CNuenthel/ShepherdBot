@@ -14,9 +14,12 @@ class DiscordUser:
     user_id - user id assigned to discord user
     th_account - name of toyhou.se user account, defaults to None
     """
-    user_name: str
-    user_id: int
+    user_id: int = None
+    user_name: str = None
     th_account: str = None
+
+    def __repr__(self):
+        return f"DiscordUser: {str(self.__dict__)}"
 
 
 class UserDBService:
@@ -66,20 +69,59 @@ class UserDBService:
         """ 
         Inserts user information into user db 
         """
+        print(user_id, user_name, th_account)
+        print(type(user_id), type(user_name), type(th_account))
         self.c.execute("""insert into users values (?, ?, ?)""", (user_id, user_name, th_account))
         self._commit()
         
-    def query_username(self, user_name: str) -> list[tuple]:
+    def query_username(self, user_name: str) -> DiscordUser or None:
         """ Query the DB for a specific username """
         self.c.execute(f"SELECT user_id, user_name, th_account FROM users WHERE user_name = :user", {"user": user_name})
-        return self.c.fetchall()
+        results = self.c.fetchone()
+        if results:
+            user_dict = {
+                "user_id": results[0],
+                "user_name": results[1],
+                "th_account": results[2]
+            }
+            return self.build_user(user_dict)
+        return
 
-    def query_id(self, user_id: int) -> list[tuple]:
+    def query_id(self, user_id: int) -> DiscordUser or None:
         """ Query the DB for a specific user_id """
-        self.c.execute(f"SELECT * FROM users WHERE user_id = :id", {"id": user_id})
-        return self.c.fetchall()
+        self.c.execute(f"SELECT user_id, user_name, th_account FROM users WHERE user_id = :id", {"id": user_id})
+        results = self.c.fetchone()
+        if results:
+            user_dict = {
+                "user_id": results[0],
+                "user_name": results[1],
+                "th_account": results[2]
+            }
+            return self.build_user(user_dict)
+        return
 
-    def query_toyhouse(self, th_account: str) -> list[tuple]:
+    def query_toyhouse(self, th_account: str) -> DiscordUser or None:
         """ Query the DB for a specific toyhou.se account """
-        self.c.execute(f"SELECT * FROM users WHERE th_account = :th", {"th": th_account})
-        return self.c.fetchall()
+        self.c.execute(f"SELECT user_id, user_name, th_account FROM users WHERE th_account = :th", {"th": th_account})
+        results = self.c.fetchone()
+        if results:
+            user_dict = {
+                "user_id": results[0],
+                "user_name": results[1],
+                "th_account": results[2]
+            }
+            return self.build_user(user_dict)
+        return
+
+    def update_th_account(self, user_id: int, th_account: str):
+        """ Update an existing record in the Users table """
+        self.c.execute(f"UPDATE users SET th_account = :th WHERE user_id = :id", {"th": th_account, "id": user_id})
+
+    @staticmethod
+    def build_user(user_dict) -> DiscordUser:
+        """ Constructs a Discorduser object from dict """
+        du = DiscordUser()
+        for k, v in user_dict.items():
+            setattr(du, k, v)
+        return du
+
