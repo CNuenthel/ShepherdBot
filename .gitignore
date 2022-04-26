@@ -1,2 +1,5 @@
 __pycache__
 .venv
+discord.log
+users.db
+users.db-journal
