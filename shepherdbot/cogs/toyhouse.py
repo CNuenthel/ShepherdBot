@@ -12,7 +12,9 @@ from functools import partial
 
 
 class ToyHouse(commands.Cog):
-    """ Discord Bot Cog, adds user interaction with images on Toyhou.se website"""
+    """
+    Discord Bot Cog, adds user interaction with images on Toyhou.se website
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -26,9 +28,14 @@ class ToyHouse(commands.Cog):
         print("✨ Toyhou.se is being herded! ✨")
 
     @commands.command()
-    async def toyhouse(self, ctx):
-        """ Requests and saves discord.id reference to toyhouse username """
-        get_user = await ctx.send(embed=functions.base_embed(
+    async def link(self, ctx):
+        """
+        Links a discord user to a toyhouse user account
+
+        Toyhouse user profile must be set to visible to guests or these bot features
+        will be unavailable.
+        """
+        await ctx.send(embed=functions.base_embed(
             title="Link Account",
             text="Tell me your Toyhou.se username and I'll link you to it!"
         ))
@@ -56,7 +63,8 @@ class ToyHouse(commands.Cog):
         else:
             await ctx.send(embed=functions.base_embed(
                 title="Link Account",
-                text="Well this is awkward... that profile was not found on Toyhou.se 😬"
+                text="Well this is awkward... that profile was either not found on Toyhou.se "
+                     "or the user is not visible to guests 😬"
             ))
             return
 
@@ -66,9 +74,11 @@ class ToyHouse(commands.Cog):
 
         # Wait for user reaction
         try:
-            reaction, user = await self.bot.wait_for("reaction_add",
-                                    check=partial(functions.basic_reaction_check, ctx),
-                                    timeout=35)
+            reaction, user = await self.bot.wait_for(
+                "reaction_add",
+                check=partial(functions.basic_reaction_check, ctx),
+                timeout=35)
+
         except asyncio.TimeoutError:
             await ctx.send(embed=functions.base_embed(
                 title="Link Account",
@@ -76,16 +86,15 @@ class ToyHouse(commands.Cog):
             ))
             return
 
-        # Apparently boolean comparison cannot be done with direct emoji scripts
-        # I'll look more into this if necessary
+        if str(reaction) == "❌":
+            await verify_msg.delete()
+            await ctx.send(embed=functions.base_embed(
+                title="Link Account",
+                text="Shoot, I missed! Make sure you gave me your correct username! 😅"
+            ))
+            return
 
-        # if reaction == "❌":
-        #     await ctx.send(embed=functions.base_embed(
-        #         title="Link Account",
-        #         text="Shoot, I missed! Make sure you gave me your correct username! 😅"
-        #     ))
-        #     return
-
+        await verify_msg.delete()
         # Save user ID and Toyhou.se account name
         # If user is not in the DB, insert and advise, else update and advise
         if not self.db.query_id(ctx.author.id):
@@ -105,7 +114,7 @@ class ToyHouse(commands.Cog):
 
     @commands.command()
     async def random(self, ctx):
-        """ Displays a random image from linked user's Toyhou.se account """
+        """ Display a random file image of a character from your linked Toyhouse account """
         user = self.db.query_id(ctx.message.author.id)
         if user:
             self.scraper.set_route(user.th_account)
