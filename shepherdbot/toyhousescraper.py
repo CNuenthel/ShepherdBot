@@ -17,7 +17,8 @@ class ToyHouseScraper:
     @staticmethod
     def scrape_document(url: str):
         html = requests.get(url)
-        return BeautifulSoup(html.text, "html.parser")
+        if html.status_code == 200:
+            return BeautifulSoup(html.text, "html.parser")
 
     @staticmethod
     def list_img_source(thumbs: list) -> list:
@@ -32,8 +33,9 @@ class ToyHouseScraper:
     def set_route(self, th_username: str):
         """ Sets standard route to Toyhou.se website user page all-character folder """
         self.route = f"https://toyhou.se/{th_username}/characters/folder:all"
-        self._get_main_document()
-        self._get_total_page_numbers()
+        if self.verify_user_found():
+            self._get_main_document()
+            self._get_total_page_numbers()
 
     def _get_main_document(self):
         """ Get document from all folder Toyhou.se user page """
@@ -66,7 +68,7 @@ class ToyHouseScraper:
         img_url, img_caption = random.choice(tuple(zip(thumbs, names)))
         img_path = self.request_image(img_url)
 
-        return [img_path, img_caption]
+        return img_path, img_caption
 
     def request_image(self, image_url: str) -> str:
         """ Scrapes and saves an image to file from url """

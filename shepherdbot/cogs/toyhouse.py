@@ -36,13 +36,11 @@ class ToyHouse(commands.Cog):
         # Message retrieval and verification
         try:
             msg = await self.bot.wait_for("message", check=partial(functions.basic_msg_check, ctx), timeout=45)
-            await msg.delete()
             self.scraper.set_route(msg.content)
             user_page_exists = self.scraper.verify_user_found()
 
         # Timeout command
         except asyncio.TimeoutError:
-            await get_user.delete()
             await ctx.send(embed=functions.base_embed(
                 title="Ok",
                 text=f"Times up! Call me back if you'd like to link accounts ⏰"
@@ -51,7 +49,6 @@ class ToyHouse(commands.Cog):
 
         # Confirm page accuracy
         if user_page_exists:
-            await get_user.delete()
             verify_msg = await ctx.send(embed=functions.user_confirm_embed(
                 user_page=self.scraper.route,
                 user_name=msg.content.title()
@@ -73,14 +70,11 @@ class ToyHouse(commands.Cog):
                                     check=partial(functions.basic_reaction_check, ctx),
                                     timeout=35)
         except asyncio.TimeoutError:
-            await verify_msg.delete()
             await ctx.send(embed=functions.base_embed(
                 title="Link Account",
                 text="Times up! Call me back if you'd like to link accounts ⏰"
             ))
             return
-
-        await verify_msg.delete()
 
         # Apparently boolean comparison cannot be done with direct emoji scripts
         # I'll look more into this if necessary
@@ -110,7 +104,7 @@ class ToyHouse(commands.Cog):
             ))
 
     @commands.command()
-    async def random(self, ctx, folder: str = None):
+    async def random(self, ctx):
         """ Displays a random image from linked user's Toyhou.se account """
         user = self.db.query_id(ctx.message.author.id)
         if user:
