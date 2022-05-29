@@ -2,11 +2,22 @@
 
 import os
 import discord
-from discord.ext import commands
 import json
+import logging
 
-test_id = 870701146099044412
+from discord.ext import commands
+from pretty_help import PrettyHelp
+
+# Error and Debug logger
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
+# Discord Bot instantiation
 bot = commands.Bot(command_prefix=".")
+bot.help_command = PrettyHelp(no_category="Base", sort_commands=True)
 
 
 @bot.event

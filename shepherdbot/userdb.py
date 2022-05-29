@@ -69,8 +69,6 @@ class UserDBService:
         """ 
         Inserts user information into user db 
         """
-        print(user_id, user_name, th_account)
-        print(type(user_id), type(user_name), type(th_account))
         self.c.execute("""insert into users values (?, ?, ?)""", (user_id, user_name, th_account))
         self._commit()
         
@@ -118,8 +116,8 @@ class UserDBService:
         self.c.execute(f"UPDATE users SET th_account = :th WHERE user_id = :id", {"th": th_account, "id": user_id})
 
     @staticmethod
-    def build_user(user_dict) -> DiscordUser:
-        """ Constructs a Discorduser object from dict """
+    def build_user(user_dict: dict) -> DiscordUser:
+        """ Constructs a DiscordUser object from dictionary """
         du = DiscordUser()
         for k, v in user_dict.items():
             setattr(du, k, v)
