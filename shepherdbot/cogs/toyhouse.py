@@ -30,7 +30,7 @@ class ToyHouse(commands.Cog):
         """ Requests and saves discord.id reference to toyhouse username """
         get_user = await ctx.send(embed=functions.base_embed(
             title="Link Account",
-            text="Tell me your Toyhou.se username and I'll link you to it!"
+            text="Tell me your Toyhou.se username and I'll link it!"
         ))
 
         # Message retrieval and verification
